@@ -190,7 +190,7 @@
 -- LEFT JOIN prescriber as pr
 -- USING (npi)
 
---     c. Finally, if you have not done so already, fill in any missing values for total_claim_count with 0. Hint - Google the COALESCE function.
+--     c. Finally, if you have not done so already, fill in any missing values for total_claim_count with 0. Hint - Google the COALESCE function
 
 
 -- 1. Write a query which returns the total number of claims for these two groups.
