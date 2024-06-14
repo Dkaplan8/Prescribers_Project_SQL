@@ -46,6 +46,20 @@
 
 --     c. **Challenge Question:** Are there any specialties that appear in the prescriber table that have no associated prescriptions in the prescription table?
 
+-- SELECT specialty_description, SUM(total_claim_count)
+-- FROM prescriber
+-- FULL JOIN prescription
+-- USING(npi)
+-- GROUP BY specialty_description
+-- EXCEPT
+-- (SELECT specialty_description, SUM(total_claim_count)
+-- FROM prescriber
+-- FULL JOIN prescription
+-- USING(npi)
+-- 	WHERE total_claim_count >= 0
+-- GROUP BY specialty_description)
+
+
 --     d. **Difficult Bonus:** *Do not attempt until you have solved all other problems!* For each specialty, report the percentage of total claims by that specialty which are for opioids. Which specialties have a high percentage of opioids?
 
 -- 3. 
@@ -59,10 +73,11 @@
 -- LIMIT 1;
 
 --"INSULIN GLARGINE,HUM.REC.ANLOG"	104264066.35
+
 --     b. Which drug (generic_name) has the hightest total cost per day? **Bonus: Round your cost per day column to 2 decimal places. Google ROUND to see how this works.**
 -- SELECT d.generic_name, ROUND(SUM(pr.total_drug_cost) / SUM(pr.total_day_supply), 2) AS cost_per_day
 -- FROM prescription as pr
--- JOIN drug as d ON pr.drug_name = d.drug_name
+-- INNER JOIN drug as d using(drug_name)
 -- GROUP BY d.generic_name
 -- ORDER BY cost_per_day DESC
 -- LIMIT 1;
@@ -112,20 +127,13 @@
 --memphis TN 937847 is largest, nashville-davidson-murfreesboro-fanklin TN 8773
 
 --     c. What is the largest (in terms of population) county which is not included in a CBSA? Report the county name and population.
--- SELECT cb.cbsaname, SUM(p.population)
--- FROM cbsa as cb
--- LEFT JOIN population as p
--- USING (fipscounty)
--- GROUP BY p.population, cb.cbsaname
--- ORDER BY population DESC;
 
--- select *
--- from cbsa
--- left join population 
--- using (fipscounty)
--- where population IS NULL
--- order by population ASC
-
+-- SELECT population.population, population.fipscounty
+-- FROM population
+-- WHERE fipscounty NOT IN
+-- (SELECT fipscounty
+-- FROM cbsa)
+-- ORDER BY population.population DESC;
 
 --
 
@@ -164,15 +172,32 @@
 
 --     a. First, create a list of all npi/drug_name combinations for pain management specialists (specialty_description = 'Pain Management) in the city of Nashville (nppes_provider_city = 'NASHVILLE'), where the drug is an opioid (opiod_drug_flag = 'Y'). **Warning:** Double-check your query before running it. You will only need to use the prescriber and drug tables since you don't need the claims numbers yet.
 
-SELECT pn.npi, pn.drug_name, pr.nppes_provider_city
-FROM prescription AS pn
-LEFT JOIN drug AS d
-USING (drug_name)
-LEFT JOIN prescriber as pr
-USING (npi)
-WHERE pr.nppes_provider_city = 'NASHVILLE'
-AND d.opioid_drug_flag = 'Y';
+-- SELECT pn.npi, pn.drug_name, pr.nppes_provider_city
+-- FROM prescription AS pn
+-- LEFT JOIN drug AS d
+-- USING (drug_name)
+-- LEFT JOIN prescriber as pr
+-- USING (npi)
+-- WHERE pr.nppes_provider_city = 'NASHVILLE'
+-- AND d.opioid_drug_flag = 'Y';
 
 --     b. Next, report the number of claims per drug per prescriber. Be sure to include all combinations, whether or not the prescriber had any claims. You should report the npi, the drug name, and the number of claims (total_claim_count).
-    
+
+-- SELECT pn.npi, pn.drug_name, COALESCE(pn.total_claim_count)
+-- FROM prescription AS pn
+-- LEFT JOIN drug AS d
+-- USING (drug_name)
+-- LEFT JOIN prescriber as pr
+-- USING (npi)
+
 --     c. Finally, if you have not done so already, fill in any missing values for total_claim_count with 0. Hint - Google the COALESCE function.
+
+
+-- 1. Write a query which returns the total number of claims for these two groups.
+
+-- SELECT distinct(pr.specialty_description), pn.total_claim_count
+-- from prescriber as pr
+-- join prescription as pn
+-- using (npi)
+-- where pr.specialty_description IN ('Pain Management', 'Interventional Pain Management')
+-- group by pn.total_claim_count, pr.specialty_description
