@@ -174,24 +174,36 @@
 
 -- SELECT pn.npi, pn.drug_name, pr.nppes_provider_city
 -- FROM prescription AS pn
--- LEFT JOIN drug AS d
--- USING (drug_name)
+-- cross join drug AS d
 -- LEFT JOIN prescriber as pr
 -- USING (npi)
 -- WHERE pr.nppes_provider_city = 'NASHVILLE'
+-- AND pr.specialty_description = 'Pain Mangement'
 -- AND d.opioid_drug_flag = 'Y';
 
 --     b. Next, report the number of claims per drug per prescriber. Be sure to include all combinations, whether or not the prescriber had any claims. You should report the npi, the drug name, and the number of claims (total_claim_count).
 
--- SELECT pn.npi, pn.drug_name, COALESCE(pn.total_claim_count)
--- FROM prescription AS pn
--- LEFT JOIN drug AS d
--- USING (drug_name)
--- LEFT JOIN prescriber as pr
--- USING (npi)
+-- select prescriber.npi, d.drug_name, coalesce(total_claim_count, 0) 
+-- from prescriber
+-- cross join drug as d
+-- left join prescription
+-- using (drug_name, npi)
+-- where prescriber.specialty_description = 'Pain Mangement'
+-- and prescriber.nppes_provider_city = 'NASHVILLE'
+-- AND opioid_drug_flag = 'Y'
+-- order by total_claim_count desc
 
 --     c. Finally, if you have not done so already, fill in any missing values for total_claim_count with 0. Hint - Google the COALESCE function
 
+select prescriber.npi, drug.drug_name, coalesce(total_claim_count, 0)
+from prescriber 
+cross join drug
+left join prescription
+using (drug_name, npi)
+where prescriber.specialty_description = 'Pain Management'
+and prescriber.nppes_provider_city = 'NASHVILLE'
+AND opioid_drug_flag = 'Y'
+order by total_claim_count desc;
 
 -- 1. Write a query which returns the total number of claims for these two groups.
 
@@ -201,3 +213,19 @@
 -- using (npi)
 -- where pr.specialty_description IN ('Pain Management', 'Interventional Pain Management')
 -- group by pn.total_claim_count, pr.specialty_description
+
+-- 2. Now, let's say that we want our output to also include the total number of claims between these two groups. Combine two queries with the UNION keyword to accomplish this. Your output should look like this:
+
+-- SELECT specialty_description, SUM(total_claim_count) AS total_claims
+-- FROM prescriber AS pr
+-- JOIN prescription AS pn ON pr.npi = pn.npi
+-- WHERE specialty_description IN ('Interventional Pain Management', 'Pain Management')
+-- GROUP BY specialty_description
+-- UNION
+-- SELECT '', SUM(total_claim_count) AS total_claims
+-- FROM prescriber AS pr
+-- JOIN prescription AS pn ON pr.npi = pn.npi
+-- WHERE specialty_description IN ('Interventional Pain Management', 'Pain Management')
+
+
+
