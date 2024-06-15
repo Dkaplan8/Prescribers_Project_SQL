@@ -9,17 +9,18 @@
 -- npi 1912011792	"COFFEY"	total claims 4538
 
 --     b. Repeat the above, but this time report the nppes_provider_first_name, nppes_provider_last_org_name,  specialty_description, and the total number of claims.
--- SELECT pr.npi, pr.nppes_provider_first_name, pr.nppes_provider_last_org_name, pr.specialty_description, pn.total_claim_count
+-- SELECT pr.npi, pr.nppes_provider_first_name, pr.nppes_provider_last_org_name, pr.specialty_description, sum(pn.total_claim_count)
 -- FROM prescriber AS pr
 -- INNER JOIN prescription AS pn
 -- USING (npi)
+-- 	GROUP BY pr.nppes_provider_first_name
 -- ORDER BY pn.total_claim_count DESC;
 
 -- npi 1912011792	"DAVID"	"COFFEY"	"Family Practice"	total claims 4538
 
 -- 2. 
 --     a. Which specialty had the most total number of claims (totaled over all drugs)?
--- SELECT prescriber.specialty_description AS specialty, 	SUM(prescription.total_claim_count) AS total_claims
+-- SELECT prescriber.specialty_description AS specialty, 	SUM(prescription.total_claim_count) :: money AS total_claims
 -- FROM prescriber
 -- LEFT JOIN prescription
 -- USING(npi)
@@ -46,18 +47,12 @@
 
 --     c. **Challenge Question:** Are there any specialties that appear in the prescriber table that have no associated prescriptions in the prescription table?
 
--- SELECT specialty_description, SUM(total_claim_count)
+-- SELECT prescriber.specialty_description, COUNT(prescription.drug_name) AS num_prescriptions
 -- FROM prescriber
--- FULL JOIN prescription
+-- LEFT JOIN prescription
 -- USING(npi)
--- GROUP BY specialty_description
--- EXCEPT
--- (SELECT specialty_description, SUM(total_claim_count)
--- FROM prescriber
--- FULL JOIN prescription
--- USING(npi)
--- 	WHERE total_claim_count >= 0
--- GROUP BY specialty_description)
+-- GROUP BY prescriber.specialty_description
+-- HAVING COUNT(prescription.drug_name) = 0;
 
 
 --     d. **Difficult Bonus:** *Do not attempt until you have solved all other problems!* For each specialty, report the percentage of total claims by that specialty which are for opioids. Which specialties have a high percentage of opioids?
@@ -65,17 +60,17 @@
 -- 3. 
 --     a. Which drug (generic_name) had the highest total drug cost?
 
--- SELECT d.generic_name, SUM(pr.total_drug_cost) AS total_drug_cost
+-- SELECT d.generic_name, SUM(pr.total_drug_cost):: money AS total_drug_cost
 -- FROM prescription as pr
 -- JOIN drug as d ON pr.drug_name = d.drug_name
 -- GROUP BY d.generic_name
--- ORDER BY total_drug_cost DESC
--- LIMIT 1;
+-- ORDER BY total_drug_cost DESC;
+
 
 --"INSULIN GLARGINE,HUM.REC.ANLOG"	104264066.35
 
 --     b. Which drug (generic_name) has the hightest total cost per day? **Bonus: Round your cost per day column to 2 decimal places. Google ROUND to see how this works.**
--- SELECT d.generic_name, ROUND(SUM(pr.total_drug_cost) / SUM(pr.total_day_supply), 2) AS cost_per_day
+-- SELECT d.generic_name, ROUND(SUM(pr.total_drug_cost) / SUM(pr.total_day_supply), 2) :: money AS cost_per_day
 -- FROM prescription as pr
 -- INNER JOIN drug as d using(drug_name)
 -- GROUP BY d.generic_name
@@ -135,7 +130,7 @@
 -- FROM cbsa)
 -- ORDER BY population.population DESC;
 
---
+-- --
 
 -- 6. 
 --     a. Find all rows in the prescription table where total_claims is at least 3000. Report the drug_name and the total_claim_count.
